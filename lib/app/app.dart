@@ -18,6 +18,7 @@ class BlobApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The LacunaThemeScope and ValueListenableBuilder are used to manage the app's theme based on the current LacunaThemeVariant.
     return ValueListenableBuilder<LacunaThemeVariant>(
       valueListenable: lacunaThemeNotifier,
       builder: (_, variant, _) {
@@ -46,6 +47,7 @@ class _AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
+      // The BlocBuilder listens to the AuthCubit and rebuilds the UI based on the current authentication state.
       builder: (context, state) {
         if (state is Authenticated) {
           return AppShellPage(user: state.user);

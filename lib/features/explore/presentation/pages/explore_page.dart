@@ -90,6 +90,11 @@ class _ExplorePageState extends State<ExplorePage> {
     ),
   ];
 
+  // The ExplorePage is a stateful widget that displays a list of trending photo albums.
+  // It includes a header, a row of sorting options (Hot, Top, New), and a grid of album tiles.
+  // The _sortIndex state variable keeps track of the currently selected sorting option,
+  // and the _trendingAlbums list contains hardcoded data for the albums to display.
+  // The build method constructs the UI using a Scaffold with a Stack to layer a grain overlay on top of the content.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +149,7 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 }
 
+// The _ExploreHeader widget displays the title "explore" and an accompanying compass icon at the top of the ExplorePage.
 class _ExploreHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -176,6 +182,8 @@ class _ExploreHeader extends StatelessWidget {
   }
 }
 
+// The _SortRow widget displays a horizontal list of sorting options (e.g., Hot, Top, New) 
+// that users can tap to change the sorting of the displayed albums.
 class _SortRow extends StatelessWidget {
   const _SortRow({
     required this.sorts,
@@ -187,6 +195,8 @@ class _SortRow extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onChanged;
 
+  // The _SortRow widget displays a horizontal list of sorting options (e.g., Hot, Top, New) 
+  // that users can tap to change the sorting of the displayed albums.
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -243,6 +253,9 @@ class _SortRow extends StatelessWidget {
   }
 }
 
+// The _AlbumTile widget represents a single album in the grid of trending albums.
+// It displays the album's name, author, photo count, and anucal score,
+// along with a background gradient based on the album's color.
 class _AlbumTile extends StatelessWidget {
   const _AlbumTile({required this.album});
 
@@ -370,6 +383,9 @@ class _AlbumTile extends StatelessWidget {
   }
 }
 
+// The _TrendingAlbum class is a simple data model that represents a photo album with properties such as 
+// name, author, photo count, anucal score, and a color for display purposes.
+// It is used to populate the list of trending albums displayed on the ExplorePage.
 class _TrendingAlbum {
   const _TrendingAlbum({
     required this.name,

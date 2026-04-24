@@ -45,6 +45,8 @@ class _RegisterPageState extends State<RegisterPage> {
             ..showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
+      // The Scaffold provides the basic visual layout structure for the login page,
+      // including an AppBar and a body that contains the login form.
       child: Scaffold(
         appBar: AppBar(title: const Text('Create account')),
         body: SafeArea(

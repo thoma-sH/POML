@@ -32,6 +32,11 @@ class _LoginPageState extends State<LoginPage> {
         );
   }
 
+  // The build method uses BlocListener to listen for AuthError states and display a SnackBar
+  // with the error message when an authentication error occurs.
+  // The UI consists of a form with text fields for the username and password,
+  // and buttons for signing in and navigating to the registration page. 
+  // The sign-in button is disabled while an authentication operation is in progress (when the state is AuthLoading).
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
@@ -42,6 +47,8 @@ class _LoginPageState extends State<LoginPage> {
             ..showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
+      // The Scaffold provides the basic visual layout structure for the login page,
+      // including an AppBar and a body that contains the login form.
       child: Scaffold(
         body: SafeArea(
           child: Center(
