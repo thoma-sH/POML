@@ -1,3 +1,4 @@
+import 'package:first_flutter_app/features/activity/presentation/pages/traces_page.dart';
 import 'package:first_flutter_app/features/auth/domain/entities/app_user.dart';
 import 'package:first_flutter_app/features/settings/presentation/pages/settings_page.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
@@ -145,6 +146,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: SizedBox(height: AppSpacing.md),
                 ),
                 const SliverToBoxAdapter(child: _ActivityLog()),
+                const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
+                SliverToBoxAdapter(
+                  child: _ViewAllTracesLink(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TracesPage(),
+                      ),
+                    ),
+                  ),
+                ),
                 const SliverToBoxAdapter(
                   child: SizedBox(height: AppSpacing.huge + AppSpacing.xl),
                 ),
@@ -152,6 +164,49 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ViewAllTracesLink extends StatelessWidget {
+  const _ViewAllTracesLink({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: TapBounce(
+        scaleTo: 0.96,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'see deeper history',
+                style: t.labelMedium?.copyWith(
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                PhosphorIconsLight.arrowRight,
+                color: AppColors.accent,
+                size: 14,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

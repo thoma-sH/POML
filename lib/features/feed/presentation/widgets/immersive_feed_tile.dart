@@ -1,6 +1,7 @@
-import 'package:first_flutter_app/features/feed/presentation/widgets/feed_post_card.dart'
-    show FeedPost;
+import 'package:first_flutter_app/features/feed/domain/entities/feed_post.dart';
+import 'package:first_flutter_app/features/feed/presentation/cubits/feed_cubit.dart';
 import 'package:first_flutter_app/features/feed/presentation/widgets/verdict_pill.dart';
+import 'package:first_flutter_app/features/moderation/presentation/widgets/post_actions_sheet.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
@@ -10,6 +11,7 @@ import 'package:first_flutter_app/shared/widgets/shimmer_box.dart';
 import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ImmersiveFeedTile extends StatefulWidget {
@@ -164,7 +166,9 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial = post.author.isEmpty ? '?' : post.author[0].toUpperCase();
+    final initial = post.authorUsername.isEmpty
+        ? '?'
+        : post.authorUsername[0].toUpperCase();
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -183,10 +187,10 @@ class _TopBar extends StatelessWidget {
               gradient: RadialGradient(
                 center: const Alignment(-0.3, -0.4),
                 colors: [
-                  Color.lerp(post.blobColor, Colors.white, 0.25) ??
-                      post.blobColor,
-                  Color.lerp(post.blobColor, Colors.black, 0.4) ??
-                      post.blobColor,
+                  Color.lerp(_blobColor(post), Colors.white, 0.25) ??
+                      _blobColor(post),
+                  Color.lerp(_blobColor(post), Colors.black, 0.4) ??
+                      _blobColor(post),
                 ],
               ),
             ),
@@ -202,7 +206,7 @@ class _TopBar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            post.author.toLowerCase(),
+            post.authorUsername.toLowerCase(),
             style: textTheme.bodySmall?.copyWith(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w500,
@@ -219,7 +223,7 @@ class _TopBar extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            post.timeAgo,
+            post.timeAgoString,
             style: textTheme.labelSmall?.copyWith(
               color: AppColors.textTertiary,
             ),
@@ -227,7 +231,18 @@ class _TopBar extends StatelessWidget {
           const Spacer(),
           TapBounce(
             scaleTo: 0.85,
-            onTap: () {},
+            onTap: () async {
+              HapticFeedback.selectionClick();
+              final blocked = await showPostActionsSheet(
+                context,
+                postId: post.postId,
+                authorId: post.authorId,
+                authorUsername: post.authorUsername,
+              );
+              if (blocked && context.mounted) {
+                await context.read<FeedCubit>().refresh();
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
               child: Icon(
@@ -265,13 +280,13 @@ class _AlbumHeadline extends StatelessWidget {
                 height: 7,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: post.blobColor,
+                  color: _blobColor(post),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
               Flexible(
                 child: Text(
-                  post.blobName.toLowerCase(),
+                  (post.albumTitle ?? '').toLowerCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -287,7 +302,7 @@ class _AlbumHeadline extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs + 2),
           Text(
-            post.themeDescription,
+            post.albumDescription ?? '',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -317,7 +332,7 @@ class _PhotoFrame extends StatelessWidget {
 
     final borderColor = isGlass
         ? Colors.white.withValues(alpha: 0.22)
-        : post.blobColor;
+        : _blobColor(post);
     final borderWidth = isGlass ? 0.8 : 1.5;
     final shadowColor = isLight
         ? Colors.black.withValues(alpha: 0.12 * theme.depthShadow + 0.04)
@@ -358,17 +373,21 @@ class _PhotoContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Image.network(
-      post.imageUrl,
+      post.mediaUrl,
       fit: BoxFit.cover,
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;
-        return ShimmerBox(tint: post.blobColor.withValues(alpha: 0.35));
+        return ShimmerBox(tint: _blobColor(post).withValues(alpha: 0.35));
       },
       errorBuilder: (context, error, stack) =>
-          _GradientFallback(color: post.blobColor),
+          _GradientFallback(color: _blobColor(post)),
     );
   }
 }
+
+Color _blobColor(FeedPost post) => post.albumColorArgb != null
+    ? Color(post.albumColorArgb!)
+    : AppColors.surface3;
 
 class _GradientFallback extends StatelessWidget {
   const _GradientFallback({required this.color});
@@ -423,7 +442,7 @@ class _BottomChrome extends StatelessWidget {
               curve: Curves.easeOutCubic,
               alignment: Alignment.topLeft,
               child: Text(
-                post.caption,
+                post.caption ?? '',
                 maxLines: captionExpanded ? null : 2,
                 overflow: captionExpanded
                     ? TextOverflow.visible
@@ -435,7 +454,7 @@ class _BottomChrome extends StatelessWidget {
               ),
             ),
           ),
-          if (post.location.isNotEmpty) ...[
+          if ((post.locationLabel ?? '').isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
             Row(
               children: [
@@ -447,7 +466,7 @@ class _BottomChrome extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Flexible(
                   child: Text(
-                    post.location,
+                    post.locationLabel ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: textTheme.labelSmall?.copyWith(
@@ -505,7 +524,7 @@ class _ActionCluster extends StatelessWidget {
           vote: vote,
           fitsCount: fitsCount,
           doesntFitCount: doesntFitCount,
-          themeColor: post.blobColor,
+          themeColor: _blobColor(post),
           onFits: onFits,
           onDoesntFit: onDoesntFit,
         ),

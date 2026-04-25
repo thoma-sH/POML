@@ -66,6 +66,30 @@ class SupabaseAuthRepo implements AuthRepo {
     await _client.auth.signOut();
   }
 
+  /// Server-side requirement: a `delete_my_account()` security-definer RPC
+  /// must exist that deletes from `auth.users` (cascading to profile/posts/etc).
+  /// Until that RPC is created, this throws a clear error so the UI can show it.
+  @override
+  Future<void> deleteAccount() async {
+    if (_client.auth.currentUser == null) {
+      throw Exception('No account is currently signed in.');
+    }
+    try {
+      await _client.rpc('delete_my_account');
+      await _client.auth.signOut();
+    } on PostgrestException catch (e) {
+      if (e.code == '42883' || e.message.contains('does not exist')) {
+        throw Exception(
+          'Account deletion is not yet enabled on the server. '
+          'Please contact support.',
+        );
+      }
+      throw Exception('Could not delete account. Please try again.');
+    } catch (_) {
+      throw Exception('Could not delete account. Please try again.');
+    }
+  }
+
   // The getCurrentUser method retrieves the current authenticated user from Supabase. 
   // If there is a user, it attempts to extract the username from the user's metadata or email. 
   // If a valid username can be determined, it returns an AppUser; otherwise, it returns null.

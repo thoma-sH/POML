@@ -36,6 +36,13 @@ class AuthCubit extends Cubit<AuthState> {
     emit(Unauthenticated());
   }
 
+  /// Permanently deletes the user's account and signs them out. Throws on
+  /// failure so the caller can surface a message; on success emits Unauthenticated.
+  Future<void> deleteAccount() async {
+    await authRepo.deleteAccount();
+    emit(Unauthenticated());
+  }
+
   // The _handleAuthResult method is a helper function that takes an asynchronous action (either login or register)
   // and manages the authentication flow. 
   // It emits an AuthLoading state while the action is in progress, then emits Authenticated if the action returns a user,

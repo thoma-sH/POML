@@ -52,6 +52,17 @@ class MockAuthRepo implements AuthRepo {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     _currentUser = null;
   }
+
+  @override
+  Future<void> deleteAccount() async {
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    final user = _currentUser;
+    if (user == null) {
+      throw Exception('No account is currently signed in.');
+    }
+    _accountsByUsername.remove(user.username.toLowerCase());
+    _currentUser = null;
+  }
 }
 
 class _MockAccount {

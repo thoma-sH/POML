@@ -1,5 +1,6 @@
 import 'package:first_flutter_app/features/feed/domain/entities/feed_post.dart';
 import 'package:first_flutter_app/features/feed/domain/repos/feed_repo.dart';
+import 'package:first_flutter_app/features/moderation/data/repos/mock_moderation_repo.dart';
 
 class MockFeedRepo implements FeedRepo {
   @override
@@ -8,9 +9,12 @@ class MockFeedRepo implements FeedRepo {
     int limit = 20,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 350));
+    final visible = _mock
+        .where((p) => !MockModerationRepo.isUserBlocked(p.authorId))
+        .toList(growable: false);
     final filtered = cursor == null
-        ? _mock
-        : _mock.where((p) => p.createdAt.isBefore(cursor)).toList();
+        ? visible
+        : visible.where((p) => p.createdAt.isBefore(cursor)).toList();
     return filtered.take(limit).toList();
   }
 }
