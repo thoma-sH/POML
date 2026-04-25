@@ -4,6 +4,8 @@ import 'package:first_flutter_app/features/feed/presentation/widgets/verdict_pil
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
+import 'package:first_flutter_app/shared/theme/lacuna_theme.dart';
+import 'package:first_flutter_app/shared/theme/lacuna_theme_provider.dart';
 import 'package:first_flutter_app/shared/widgets/shimmer_box.dart';
 import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
 import 'package:flutter/material.dart';
@@ -308,6 +310,19 @@ class _PhotoFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = LacunaThemeScope.of(context);
+    final isLight = theme.palette.brightness == Brightness.light;
+    final isGlass = theme.surfaceStyle == SurfaceStyle.liquidGlass ||
+        theme.surfaceStyle == SurfaceStyle.frosted;
+
+    final borderColor = isGlass
+        ? Colors.white.withValues(alpha: 0.22)
+        : post.blobColor;
+    final borderWidth = isGlass ? 0.8 : 1.5;
+    final shadowColor = isLight
+        ? Colors.black.withValues(alpha: 0.12 * theme.depthShadow + 0.04)
+        : Colors.black.withValues(alpha: 0.35 * theme.depthShadow + 0.15);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: AspectRatio(
@@ -315,17 +330,18 @@ class _PhotoFrame extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadii.xl),
-            border: Border.all(color: post.blobColor, width: 1.5),
+            border: Border.all(color: borderColor, width: borderWidth),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.4),
-                blurRadius: 24,
-                offset: const Offset(0, 16),
+                color: shadowColor,
+                blurRadius: 28,
+                spreadRadius: -4,
+                offset: const Offset(0, 14),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadii.xl - 1.5),
+            borderRadius: BorderRadius.circular(AppRadii.xl - borderWidth),
             child: _PhotoContent(post: post),
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:first_flutter_app/features/auth/domain/entities/app_user.dart';
 import 'package:first_flutter_app/features/feed/presentation/widgets/feed_post_card.dart';
 import 'package:first_flutter_app/features/feed/presentation/widgets/immersive_feed_tile.dart';
 import 'package:first_flutter_app/features/game/presentation/pages/friend_or_foe_page.dart';
+import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
 import 'package:first_flutter_app/shared/widgets/frost_panel.dart';
@@ -131,7 +132,7 @@ class _FloatingHeader extends StatelessWidget {
                 Text(
                   'lacuna',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.w400,
                     letterSpacing: -0.2,
                   ),
@@ -155,9 +156,9 @@ class _FloatingHeader extends StatelessWidget {
             child: FrostPanel(
               borderRadius: AppRadii.pill,
               padding: const EdgeInsets.all(AppSpacing.sm + 2),
-              child: const Icon(
+              child: Icon(
                 PhosphorIconsLight.gameController,
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 size: 18,
               ),
             ),
@@ -169,9 +170,9 @@ class _FloatingHeader extends StatelessWidget {
             child: FrostPanel(
               borderRadius: AppRadii.pill,
               padding: const EdgeInsets.all(AppSpacing.sm + 2),
-              child: const Icon(
+              child: Icon(
                 PhosphorIconsLight.paperPlaneTilt,
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 size: 18,
               ),
             ),
@@ -193,9 +194,7 @@ class _FilterDot extends StatelessWidget {
     return AnimatedDefaultTextStyle(
       duration: AppMotion.short,
       style: TextStyle(
-        color: active
-            ? Colors.white
-            : Colors.white.withValues(alpha: 0.45),
+        color: active ? AppColors.textPrimary : AppColors.textTertiary,
         fontSize: 11,
         fontWeight: active ? FontWeight.w500 : FontWeight.w400,
         letterSpacing: 0.4,
@@ -233,17 +232,9 @@ class _PageProgressIndicator extends StatelessWidget {
               height: isActive ? 18 : 6,
               decoration: BoxDecoration(
                 color: isActive
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.32),
+                    ? AppColors.textPrimary
+                    : AppColors.textPrimary.withValues(alpha: 0.32),
                 borderRadius: BorderRadius.circular(2),
-                boxShadow: isActive
-                    ? [
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                        ),
-                      ]
-                    : null,
               ),
             );
           }),

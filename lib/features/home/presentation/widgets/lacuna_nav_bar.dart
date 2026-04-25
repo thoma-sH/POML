@@ -1,7 +1,7 @@
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
-import 'package:first_flutter_app/shared/widgets/frost_panel.dart';
+import 'package:first_flutter_app/shared/widgets/glass_surface.dart';
 import 'package:first_flutter_app/shared/widgets/scalloped_avatar.dart';
 import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
 import 'package:flutter/material.dart';
@@ -53,11 +53,9 @@ class LacunaNavBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: FrostPanel(
+        child: GlassSurface(
           borderRadius: AppRadii.pill,
-          blur: 18,
-          tint: AppColors.bgDeep.withValues(alpha: 0.55),
-          borderColor: Colors.white.withValues(alpha: 0.08),
+          thickness: GlassThickness.thick,
           child: SizedBox(
             height: 60,
             child: Row(
@@ -112,7 +110,7 @@ class _NavTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconData = isActive ? item.activeIcon! : item.icon!;
-    final color = isActive ? Colors.white : Colors.white.withValues(alpha: 0.42);
+    final color = isActive ? AppColors.textPrimary : AppColors.textTertiary;
 
     return TapBounce(
       scaleTo: 0.85,

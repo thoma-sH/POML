@@ -11,9 +11,14 @@ class ThemedBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = LacunaThemeScope.of(context);
-    return RepaintBoundary(
-      key: ValueKey(theme.variant),
-      child: _buildFor(theme),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 380),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: RepaintBoundary(
+        key: ValueKey(theme.variant),
+        child: _buildFor(theme),
+      ),
     );
   }
 

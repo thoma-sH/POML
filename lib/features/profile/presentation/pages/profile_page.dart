@@ -2,6 +2,7 @@ import 'package:first_flutter_app/features/auth/domain/entities/app_user.dart';
 import 'package:first_flutter_app/features/settings/presentation/pages/settings_page.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
+import 'package:first_flutter_app/shared/widgets/glass_surface.dart';
 import 'package:first_flutter_app/shared/widgets/grain_overlay.dart';
 import 'package:first_flutter_app/shared/widgets/scalloped_avatar.dart';
 import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
@@ -408,15 +409,12 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    return Container(
+    return GlassSurface(
+      thickness: GlassThickness.thin,
+      borderRadius: AppRadii.pill,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface1,
-        borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: AppColors.borderSubtle, width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -722,12 +720,9 @@ class _ActivityLog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface1,
-          borderRadius: BorderRadius.circular(AppSpacing.md),
-          border: Border.all(color: AppColors.borderSubtle, width: 0.5),
-        ),
+      child: GlassSurface(
+        thickness: GlassThickness.regular,
+        borderRadius: AppSpacing.md,
         child: Column(
           children: [
             for (var i = 0; i < _mockActivity.length; i++) ...[

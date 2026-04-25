@@ -1,5 +1,6 @@
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
+import 'package:first_flutter_app/shared/widgets/glass_surface.dart';
 import 'package:first_flutter_app/shared/widgets/grain_overlay.dart';
 import 'package:first_flutter_app/shared/widgets/scalloped_avatar.dart';
 import 'package:flutter/material.dart';
@@ -200,24 +201,12 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 46,
-      decoration: BoxDecoration(
-        color: AppColors.surface1,
-        borderRadius: BorderRadius.circular(AppSpacing.md),
-        border: Border.all(
-          color: AppColors.borderSubtle,
-          width: 0.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
+    return GlassSurface(
+      thickness: GlassThickness.regular,
+      borderRadius: AppSpacing.md,
+      child: SizedBox(
+        height: 46,
+        child: Row(
         children: [
           Padding(
             padding: const EdgeInsets.only(left: AppSpacing.md),
@@ -260,7 +249,8 @@ class _SearchField extends StatelessWidget {
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

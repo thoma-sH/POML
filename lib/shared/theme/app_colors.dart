@@ -1,6 +1,16 @@
+import 'package:first_flutter_app/shared/theme/lacuna_theme.dart';
 import 'package:first_flutter_app/shared/theme/lacuna_theme_provider.dart';
 import 'package:flutter/material.dart';
 
+/// Theme palette accessor.
+///
+/// Two ways to read theme colors:
+/// 1. `AppColors.accent` — global statics. Rebuilds via `MaterialApp.builder`
+///    + `ValueListenableBuilder<LacunaThemeVariant>` at the root, so values are
+///    fresh on every `build()`. Works for the entire app today.
+/// 2. `context.palette.accent` — context-scoped via `LacunaThemeScope`. Prefer
+///    this for new widgets that need to respect a nested theme override (e.g.
+///    a preview widget rendering with a different variant).
 class AppColors {
   AppColors._();
 
@@ -25,4 +35,9 @@ class AppColors {
 
   static Color get upvote => currentLacunaTheme.palette.upvote;
   static Color get downvote => currentLacunaTheme.palette.downvote;
+}
+
+extension LacunaPaletteX on BuildContext {
+  ColorPalette get palette => LacunaThemeScope.of(this).palette;
+  LacunaTheme get lacunaTheme => LacunaThemeScope.of(this);
 }
