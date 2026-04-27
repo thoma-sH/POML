@@ -1,6 +1,8 @@
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
+import 'package:first_flutter_app/shared/theme/lacuna_theme.dart';
+import 'package:first_flutter_app/shared/theme/lacuna_theme_provider.dart';
 import 'package:first_flutter_app/shared/widgets/glass_surface.dart';
 import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
 import 'package:flutter/material.dart';
@@ -43,6 +45,17 @@ class LacunaNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Subscribe directly to the theme notifier so the bar repaints the
+    // moment a user picks a new variant — without this, AppColors.* are
+    // re-read only on the next outer rebuild (e.g. tab switch), which
+    // is why theme changes used to lag a navigation cycle.
+    return ValueListenableBuilder<LacunaThemeVariant>(
+      valueListenable: lacunaThemeNotifier,
+      builder: (_, _, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -72,7 +85,7 @@ class LacunaNavBar extends StatelessWidget {
           child: GlassSurface(
             borderRadius: AppRadii.pill,
             thickness: GlassThickness.thick,
-            tintOverride: AppColors.surface1.withValues(alpha: 0.92),
+            tintOverride: AppColors.surface1.withValues(alpha: 0.84),
             child: Stack(
               children: [
                 SizedBox(
@@ -97,6 +110,52 @@ class LacunaNavBar extends StatelessWidget {
                     }),
                   ),
                 ),
+                // Lit-from-above sheen — fades from a soft white wash at
+                // the top to nothing at the equator. Sells the curvature
+                // of the glass slab without obscuring the icons below.
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.10),
+                            Colors.white.withValues(alpha: 0.00),
+                          ],
+                          stops: const [0.0, 0.55],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Specular gleam — a stretched window-reflection streak
+                // a few pixels under the top edge. Brightest in the
+                // middle, fading to transparent at both ends so the
+                // pill's curve catches a believable highlight.
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 3,
+                  height: 8,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.0),
+                            Colors.white.withValues(alpha: 0.18),
+                            Colors.white.withValues(alpha: 0.0),
+                          ],
+                          stops: const [0.05, 0.5, 0.95],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   left: 0,
                   right: 0,
@@ -105,7 +164,7 @@ class LacunaNavBar extends StatelessWidget {
                   child: IgnorePointer(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
+                        color: Colors.white.withValues(alpha: 0.32),
                       ),
                     ),
                   ),

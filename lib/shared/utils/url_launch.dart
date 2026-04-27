@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Opens [url] in the default external browser. Shows a friendly snackbar on
-/// failure rather than throwing — settings rows should never crash the app.
+// Opens the given URL in the default external browser. Shows a friendly
+// snackbar on failure rather than throwing — settings rows should never
+// crash the app just because the OS can't resolve a handler.
 Future<void> launchExternalUrl(BuildContext context, String url) async {
   final uri = Uri.tryParse(url);
   if (uri == null) {
@@ -15,7 +16,8 @@ Future<void> launchExternalUrl(BuildContext context, String url) async {
   }
 }
 
-/// Opens the user's mail client to compose to [email] with optional [subject].
+// Opens the user's mail client to compose a new message to the given
+// address. The subject is optional and rendered as a URL query parameter.
 Future<void> launchMail(
   BuildContext context,
   String email, {

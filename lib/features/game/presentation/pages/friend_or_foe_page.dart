@@ -462,15 +462,7 @@ class _StatRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              stat.type.label,
-              style: t.bodyMedium?.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
+          const Spacer(),
           if (stat.played > 0) ...[
             Text(
               '${stat.wins}',

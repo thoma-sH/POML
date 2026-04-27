@@ -1,4 +1,9 @@
+import 'package:first_flutter_app/features/activity/data/repos/mock_activity_repo.dart';
+import 'package:first_flutter_app/features/activity/domain/entities/activity_trace.dart';
+import 'package:first_flutter_app/features/activity/presentation/cubits/activity_cubit.dart';
+import 'package:first_flutter_app/features/activity/presentation/cubits/activity_states.dart';
 import 'package:first_flutter_app/features/activity/presentation/pages/traces_page.dart';
+import 'package:first_flutter_app/features/activity/presentation/widgets/trace_row.dart';
 import 'package:first_flutter_app/features/auth/domain/entities/app_user.dart';
 import 'package:first_flutter_app/features/settings/presentation/pages/settings_page.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
@@ -13,6 +18,7 @@ import 'package:first_flutter_app/shared/widgets/sparkle_cluster.dart';
 import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -66,14 +72,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: GrainOverlay()),
-          SafeArea(
-            bottom: false,
-            child: CustomScrollView(
+    return BlocProvider<ActivityCubit>(
+      create: (_) => ActivityCubit(repo: MockActivityRepo())..loadInitial(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: GrainOverlay()),
+            SafeArea(
+              bottom: false,
+              child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
                 SliverToBoxAdapter(child: _TopRail(onSettings: _openSettings)),
@@ -163,7 +171,8 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -768,128 +777,70 @@ class _AlbumCard extends StatelessWidget {
   }
 }
 
-class _ActivityEntry {
-  const _ActivityEntry({
-    required this.icon,
-    required this.text,
-    required this.timeAgo,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String text;
-  final String timeAgo;
-  final Color color;
-}
-
-const _mockActivity = <_ActivityEntry>[
-  _ActivityEntry(
-    icon: PhosphorIconsFill.check,
-    text: 'voted FITS on sarah\'s sunsets post',
-    timeAgo: '12m',
-    color: Color(0xFFE08A4D),
-  ),
-  _ActivityEntry(
-    icon: PhosphorIconsLight.bookmarkSimple,
-    text: 'saved a post in ivy\'s mossy',
-    timeAgo: '1h',
-    color: Color(0xFF6B8E6B),
-  ),
-  _ActivityEntry(
-    icon: PhosphorIconsFill.gameController,
-    text: 'beat theo.k at chess (+1)',
-    timeAgo: '3h',
-    color: Color(0xFFB7A6F0),
-  ),
-  _ActivityEntry(
-    icon: PhosphorIconsLight.image,
-    text: 'posted to your roadtrip shelf',
-    timeAgo: '6h',
-    color: Color(0xFF8C6CC4),
-  ),
-  _ActivityEntry(
-    icon: PhosphorIconsLight.x,
-    text: 'voted DOESN\'T FIT on cass\'s coffee',
-    timeAgo: '1d',
-    color: Color(0xFFD17B8E),
-  ),
-];
-
+// Renders the latest few traces as a preview on the profile page. Reads
+// from the same ActivityCubit/repo that the full Traces page uses, so any
+// future state updates flow through both surfaces.
 class _ActivityLog extends StatelessWidget {
   const _ActivityLog();
 
+  static const _previewCount = 5;
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: GlassSurface(
-        thickness: GlassThickness.regular,
-        borderRadius: AppSpacing.md,
-        child: Column(
-          children: [
-            for (var i = 0; i < _mockActivity.length; i++) ...[
-              _ActivityRow(entry: _mockActivity[i]),
-              if (i < _mockActivity.length - 1)
-                Divider(
-                  height: 1,
-                  thickness: 0.5,
-                  color: AppColors.borderSubtle,
-                  indent: AppSpacing.md,
-                  endIndent: AppSpacing.md,
-                ),
-            ],
-          ],
-        ),
-      ),
+    return BlocBuilder<ActivityCubit, ActivityState>(
+      builder: (context, state) {
+        final traces = state is ActivityLoaded
+            ? state.traces.take(_previewCount).toList()
+            : const <ActivityTrace>[];
+        if (traces.isEmpty) {
+          return const _ActivityEmpty();
+        }
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: GlassSurface(
+            thickness: GlassThickness.regular,
+            borderRadius: AppSpacing.md,
+            child: Column(
+              children: [
+                for (var i = 0; i < traces.length; i++) ...[
+                  TraceRow(trace: traces[i]),
+                  if (i < traces.length - 1)
+                    Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      color: AppColors.borderSubtle,
+                      indent: AppSpacing.md,
+                      endIndent: AppSpacing.md,
+                    ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
-class _ActivityRow extends StatelessWidget {
-  const _ActivityRow({required this.entry});
-
-  final _ActivityEntry entry;
+// Quiet placeholder shown when the viewer has no traces yet.
+class _ActivityEmpty extends StatelessWidget {
+  const _ActivityEmpty();
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final t = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.lg,
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: entry.color.withValues(alpha: 0.16),
-            ),
-            alignment: Alignment.center,
-            child: Icon(entry.icon, color: entry.color, size: 13),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              entry.text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            entry.timeAgo,
-            style: textTheme.labelSmall?.copyWith(
-              color: AppColors.textTertiary,
-              fontSize: 10,
-            ),
-          ),
-        ],
+      child: Text(
+        'no traces yet — your first vote will land here.',
+        textAlign: TextAlign.center,
+        style: t.bodySmall?.copyWith(
+          color: AppColors.textTertiary,
+          fontStyle: FontStyle.italic,
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:first_flutter_app/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:first_flutter_app/features/auth/presentation/cubits/auth_states.dart';
+import 'package:first_flutter_app/shared/constants/legal_urls.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
@@ -7,10 +8,6 @@ import 'package:first_flutter_app/shared/utils/url_launch.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-// Placeholder URLs — keep in sync with settings_page.dart until real ones land.
-const _termsUrl = 'https://lacuna.app/terms';
-const _privacyUrl = 'https://lacuna.app/privacy';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -227,13 +224,17 @@ class _AgreementText extends StatelessWidget {
           TextSpan(
             text: 'terms of service',
             style: link,
-            recognizer: _tap(() => launchExternalUrl(context, _termsUrl)),
+            recognizer: _tap(
+              () => launchExternalUrl(context, LegalUrls.termsOfService),
+            ),
           ),
           const TextSpan(text: ' and '),
           TextSpan(
             text: 'privacy policy',
             style: link,
-            recognizer: _tap(() => launchExternalUrl(context, _privacyUrl)),
+            recognizer: _tap(
+              () => launchExternalUrl(context, LegalUrls.privacyPolicy),
+            ),
           ),
           const TextSpan(text: '.'),
         ],

@@ -1,6 +1,9 @@
 import 'package:first_flutter_app/features/activity/domain/entities/activity_trace.dart';
 import 'package:first_flutter_app/features/activity/domain/repos/activity_repo.dart';
 
+// In-memory activity source backed by a fixed list spanning the last
+// month, used in debug builds and to drive the profile preview while
+// the production `get_my_traces` RPC isn't wired yet.
 class MockActivityRepo implements ActivityRepo {
   @override
   Future<List<ActivityTrace>> getMyTraces({

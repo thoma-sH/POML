@@ -2,6 +2,9 @@ import 'package:first_flutter_app/features/activity/domain/repos/activity_repo.d
 import 'package:first_flutter_app/features/activity/presentation/cubits/activity_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// Drives both the profile "recent traces" preview and the full Traces
+// page. Keyset-paginated through `cursor` (oldest createdAt seen).
+// Pages fetch 30 at a time; the profile preview just slices the first 5.
 class ActivityCubit extends Cubit<ActivityState> {
   ActivityCubit({required ActivityRepo repo})
       : _repo = repo,

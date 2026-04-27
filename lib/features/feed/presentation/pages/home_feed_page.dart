@@ -5,7 +5,7 @@ import 'package:first_flutter_app/features/feed/domain/repos/feed_repo.dart';
 import 'package:first_flutter_app/features/feed/presentation/cubits/feed_cubit.dart';
 import 'package:first_flutter_app/features/feed/presentation/cubits/feed_states.dart';
 import 'package:first_flutter_app/features/feed/presentation/widgets/immersive_feed_tile.dart';
-import 'package:first_flutter_app/features/game/presentation/pages/friend_or_foe_page.dart';
+import 'package:first_flutter_app/features/game/presentation/pages/games_hub_page.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
@@ -282,7 +282,7 @@ class _FloatingHeader extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const FriendOrFoePage(),
+                builder: (_) => const GamesHubPage(),
               ),
             ),
             child: FrostPanel(

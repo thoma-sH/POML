@@ -2,6 +2,9 @@ import 'package:first_flutter_app/features/moderation/domain/repos/moderation_re
 import 'package:first_flutter_app/features/moderation/presentation/cubits/blocks_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// Drives the Blocked Accounts settings page. Holds the current list of
+// blocked users and exposes load/unblock — unblock re-runs load so the
+// row disappears as soon as the server confirms.
 class BlocksCubit extends Cubit<BlocksState> {
   BlocksCubit({required ModerationRepo repo})
       : _repo = repo,

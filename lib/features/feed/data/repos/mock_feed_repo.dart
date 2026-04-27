@@ -2,6 +2,9 @@ import 'package:first_flutter_app/features/feed/domain/entities/feed_post.dart';
 import 'package:first_flutter_app/features/feed/domain/repos/feed_repo.dart';
 import 'package:first_flutter_app/features/moderation/data/repos/mock_moderation_repo.dart';
 
+// In-memory feed source used in debug builds and during tests. Reads the
+// process-global mock block set so blocking a user actually hides their
+// posts in dev — production filtering happens in the SQL itself.
 class MockFeedRepo implements FeedRepo {
   @override
   Future<List<FeedPost>> getFollowingFeed({

@@ -9,8 +9,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Two-step destructive flow: explanation + type-to-confirm.
-/// Returns `true` if the user successfully deleted their account.
+// Two-step destructive flow required by App Store Guideline 5.1.1(v):
+// an explanation screen plus a type-the-word confirmation. Returns `true`
+// if the user successfully deleted their account, `false` otherwise.
 Future<bool> showDeleteAccountSheet(BuildContext context) async {
   final result = await showModalBottomSheet<bool>(
     context: context,

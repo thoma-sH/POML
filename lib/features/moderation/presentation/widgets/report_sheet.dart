@@ -10,7 +10,8 @@ import 'package:flutter/services.dart';
 
 enum _Target { post, user }
 
-/// Report a feed post.
+// Opens the report sheet against a specific post. Returns `true` once
+// the report has been successfully submitted to the server.
 Future<bool> showReportPostSheet(
   BuildContext context, {
   required ModerationRepo repo,
@@ -23,7 +24,8 @@ Future<bool> showReportPostSheet(
           repo.reportPost(postId: postId, reason: reason, note: note),
     );
 
-/// Report a user account.
+// Opens the report sheet against a user account. Returns `true` once
+// the report has been successfully submitted to the server.
 Future<bool> showReportUserSheet(
   BuildContext context, {
   required ModerationRepo repo,

@@ -1,6 +1,7 @@
 import 'package:first_flutter_app/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:first_flutter_app/features/auth/presentation/widgets/delete_account_sheet.dart';
 import 'package:first_flutter_app/features/moderation/presentation/pages/blocked_accounts_page.dart';
+import 'package:first_flutter_app/shared/constants/legal_urls.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_motion.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
@@ -16,11 +17,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-
-// Placeholder URLs — replace with real ones before App Store submission.
-const _termsUrl = 'https://lacuna.app/terms';
-const _privacyUrl = 'https://lacuna.app/privacy';
-const _supportEmail = 'support@lacuna.app';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -331,24 +327,24 @@ class _SupportLegalSection extends StatelessWidget {
         _SettingsRow(
           icon: PhosphorIconsLight.envelopeSimple,
           label: 'contact support',
-          detail: _supportEmail,
+          detail: LegalUrls.supportEmail,
           onTap: () => launchMail(
             context,
-            _supportEmail,
+            LegalUrls.supportEmail,
             subject: 'Lacuna support',
           ),
         ),
         _SettingsRow(
           icon: PhosphorIconsLight.fileText,
           label: 'terms of service',
-          detail: _termsUrl,
-          onTap: () => launchExternalUrl(context, _termsUrl),
+          detail: LegalUrls.termsOfService,
+          onTap: () => launchExternalUrl(context, LegalUrls.termsOfService),
         ),
         _SettingsRow(
           icon: PhosphorIconsLight.lock,
           label: 'privacy policy',
-          detail: _privacyUrl,
-          onTap: () => launchExternalUrl(context, _privacyUrl),
+          detail: LegalUrls.privacyPolicy,
+          onTap: () => launchExternalUrl(context, LegalUrls.privacyPolicy),
         ),
         _SettingsRow(
           icon: PhosphorIconsLight.scales,

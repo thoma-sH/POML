@@ -12,9 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-/// Three-rail action sheet shown from the "..." button on a feed post.
-/// Returns `true` if the user blocked the author (so the caller can
-/// remove the post or refresh the feed).
+// Three-rail action sheet shown from the "..." button on a feed post.
+// Surfaces Report Post / Report User / Block User in one place.
+// Returns `true` if the user blocked the author so the caller can
+// refresh the feed and drop the now-invisible post.
 Future<bool> showPostActionsSheet(
   BuildContext context, {
   required String postId,

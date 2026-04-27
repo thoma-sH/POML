@@ -40,6 +40,8 @@ dependencies:
   google_fonts: ^8.0.2
   phosphor_flutter: ^2.1.0
   url_launcher: ^6.3.1
+  flame: ^1.30.0
+  flame_forge2d: ^0.19.0
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:first_flutter_app/features/activity/data/repos/mock_activity_rep
 import 'package:first_flutter_app/features/activity/domain/entities/activity_trace.dart';
 import 'package:first_flutter_app/features/activity/presentation/cubits/activity_cubit.dart';
 import 'package:first_flutter_app/features/activity/presentation/cubits/activity_states.dart';
+import 'package:first_flutter_app/features/activity/presentation/widgets/trace_row.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
 import 'package:first_flutter_app/shared/widgets/glass_surface.dart';
@@ -208,7 +209,7 @@ class _TraceGroup extends StatelessWidget {
         child: Column(
           children: [
             for (var i = 0; i < traces.length; i++) ...[
-              _TraceRow(trace: traces[i]),
+              TraceRow(trace: traces[i]),
               if (i < traces.length - 1)
                 Divider(
                   height: 1,
@@ -222,81 +223,6 @@ class _TraceGroup extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _TraceRow extends StatelessWidget {
-  const _TraceRow({required this.trace});
-
-  final ActivityTrace trace;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final color = trace.colorArgb != null
-        ? Color(trace.colorArgb!)
-        : AppColors.accent;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color.withValues(alpha: 0.16),
-            ),
-            alignment: Alignment.center,
-            child: Icon(_iconFor(trace.kind), color: color, size: 13),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Text(
-              trace.text,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.35,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            trace.timeAgoString,
-            style: textTheme.labelSmall?.copyWith(
-              color: AppColors.textTertiary,
-              fontSize: 10,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-IconData _iconFor(TraceKind kind) {
-  switch (kind) {
-    case TraceKind.votedFits:
-      return PhosphorIconsFill.check;
-    case TraceKind.votedDoesntFit:
-      return PhosphorIconsLight.x;
-    case TraceKind.saved:
-      return PhosphorIconsLight.bookmarkSimple;
-    case TraceKind.posted:
-      return PhosphorIconsLight.image;
-    case TraceKind.wonGame:
-      return PhosphorIconsFill.gameController;
-    case TraceKind.lostGame:
-      return PhosphorIconsLight.gameController;
-    case TraceKind.followed:
-      return PhosphorIconsLight.userPlus;
-    case TraceKind.other:
-      return PhosphorIconsLight.sparkle;
   }
 }
 

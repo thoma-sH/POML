@@ -3,9 +3,10 @@ import 'package:first_flutter_app/features/moderation/domain/entities/report_rea
 import 'package:first_flutter_app/features/moderation/domain/repos/moderation_repo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Production moderation repo. Calls server-side RPCs (`block_user`,
-/// `unblock_user`, `report_post`, `report_user`) that must exist in Supabase.
-/// Reads blocks from the `blocks` table directly (RLS scopes to viewer only).
+// Production moderation repo. Calls server-side RPCs (`block_user`,
+// `unblock_user`, `report_post`, `report_user`) that must exist in
+// Supabase. Reads blocks from the `blocks` table directly — RLS scopes
+// the rows to the viewer, so no extra filter is needed here.
 class SupabaseModerationRepo implements ModerationRepo {
   final _client = Supabase.instance.client;
 

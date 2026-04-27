@@ -2,6 +2,10 @@ import 'package:first_flutter_app/features/feed/domain/repos/feed_repo.dart';
 import 'package:first_flutter_app/features/feed/presentation/cubits/feed_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// Drives the feed page. Holds the current list of posts plus pagination
+// state, and exposes loadInitial/loadMore/refresh as the only ways to
+// mutate it. Friendly error messages translate raw Postgres exceptions
+// (`not_authenticated`, `rate_limited`) into user-readable copy.
 class FeedCubit extends Cubit<FeedState> {
   FeedCubit({required FeedRepo feedRepo})
       : _repo = feedRepo,
@@ -10,6 +14,8 @@ class FeedCubit extends Cubit<FeedState> {
   final FeedRepo _repo;
   static const _pageSize = 20;
 
+  // Fetches the first page. Used on cold start of the home feed; safe to
+  // call again to retry from a Failure state.
   Future<void> loadInitial() async {
     if (state is FeedLoading) return;
     emit(const FeedLoading());
@@ -26,6 +32,8 @@ class FeedCubit extends Cubit<FeedState> {
     }
   }
 
+  // Appends the next page using the oldest createdAt we've seen as the
+  // cursor. No-ops if we're already loading more or there's nothing left.
   Future<void> loadMore() async {
     final current = state;
     if (current is! FeedLoaded) return;
@@ -49,6 +57,8 @@ class FeedCubit extends Cubit<FeedState> {
     }
   }
 
+  // Replaces the current list with a fresh first page — used when a
+  // user blocks someone and we need to drop their posts from view.
   Future<void> refresh() async {
     try {
       final posts = await _repo.getFollowingFeed(limit: _pageSize);

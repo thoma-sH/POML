@@ -1,5 +1,12 @@
+// Whether a post's media is a still photo or a clip. Mirrors the
+// `media_type_enum` defined in the Supabase schema.
 enum FeedMediaType { photo, video }
 
+// Pure-Dart entity representing one row from the `get_following_feed` RPC.
+// Holds everything a feed tile renders — author, album, media, counts,
+// and the viewer's existing vote (null when the viewer hasn't voted).
+// `aspectRatio` and `commentCount` are UI-only and default to 1.0 / 0
+// because the database doesn't store them yet.
 class FeedPost {
   const FeedPost({
     required this.postId,
@@ -49,6 +56,8 @@ class FeedPost {
   final double aspectRatio;
   final int commentCount;
 
+  // Builds a FeedPost from one row returned by `get_following_feed`.
+  // Column names here must match the RPC's RETURNS TABLE declaration.
   factory FeedPost.fromRpcRow(Map<String, dynamic> row) {
     return FeedPost(
       postId: row['post_id'] as String,
@@ -75,6 +84,8 @@ class FeedPost {
     );
   }
 
+  // Compact relative timestamp ("2h", "3d", "now") derived from createdAt.
+  // Computed at render time so it stays accurate without re-fetching.
   String get timeAgoString {
     final delta = DateTime.now().difference(createdAt);
     if (delta.inDays >= 1) return '${delta.inDays}d';

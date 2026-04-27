@@ -2,8 +2,10 @@ import 'package:first_flutter_app/features/moderation/domain/entities/blocked_us
 import 'package:first_flutter_app/features/moderation/domain/entities/report_reason.dart';
 import 'package:first_flutter_app/features/moderation/domain/repos/moderation_repo.dart';
 
-/// In-memory mock. The block set is process-global so the mock feed repo
-/// can read it for filtering — they share state across the app session.
+// In-memory mock used in debug builds. The block set is process-global
+// (a static map) so that any code path holding a fresh MockModerationRepo
+// instance still sees the same data — the mock feed repo reads from it
+// to filter blocked authors. Reports are accepted but not persisted.
 class MockModerationRepo implements ModerationRepo {
   static final Map<String, BlockedUser> _blocks = {};
 

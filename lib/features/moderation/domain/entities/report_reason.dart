@@ -1,3 +1,7 @@
+// The reasons a user can pick from when reporting a post or another
+// user. The set is intentionally small and stable; the wireKey strings
+// are what get persisted in the `reports.reason` column on Supabase.
+// Don't rename a wireKey without writing a migration.
 enum ReportReason {
   spam,
   harassment,
