@@ -1,19 +1,52 @@
+import 'dart:io';
+
+import 'package:first_flutter_app/features/post/data/repos/mock_post_repo.dart';
+import 'package:first_flutter_app/features/post/data/repos/mock_post_storage_repo.dart';
+import 'package:first_flutter_app/features/post/data/repos/supabase_post_repo.dart';
+import 'package:first_flutter_app/features/post/data/repos/supabase_post_storage_repo.dart';
+import 'package:first_flutter_app/features/post/domain/repos/post_repo.dart';
+import 'package:first_flutter_app/features/post/domain/repos/post_storage_repo.dart';
+import 'package:first_flutter_app/features/post/presentation/cubits/post_capture_cubit.dart';
+import 'package:first_flutter_app/features/post/presentation/cubits/post_capture_states.dart';
 import 'package:first_flutter_app/shared/theme/app_colors.dart';
 import 'package:first_flutter_app/shared/theme/app_spacing.dart';
 import 'package:first_flutter_app/shared/widgets/grain_overlay.dart';
 import 'package:first_flutter_app/shared/widgets/scalloped_avatar.dart';
+import 'package:first_flutter_app/shared/widgets/tap_bounce.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-class PostCapturePage extends StatefulWidget {
+class PostCapturePage extends StatelessWidget {
   const PostCapturePage({super.key});
 
+  PostStorageRepo _storageRepo() =>
+      kDebugMode ? MockPostStorageRepo() : SupabasePostStorageRepo();
+
+  PostRepo _postRepo() => kDebugMode ? MockPostRepo() : SupabasePostRepo();
+
   @override
-  State<PostCapturePage> createState() => _PostCapturePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<PostCaptureCubit>(
+      create: (_) => PostCaptureCubit(
+        storageRepo: _storageRepo(),
+        postRepo: _postRepo(),
+      ),
+      child: const _PostCaptureView(),
+    );
+  }
 }
 
-class _PostCapturePageState extends State<PostCapturePage> {
+class _PostCaptureView extends StatefulWidget {
+  const _PostCaptureView();
+
+  @override
+  State<_PostCaptureView> createState() => _PostCaptureViewState();
+}
+
+class _PostCaptureViewState extends State<_PostCaptureView> {
   int? _selectedAlbum;
   final _captionController = TextEditingController();
   bool _locationTagged = false;
@@ -35,67 +68,141 @@ class _PostCapturePageState extends State<PostCapturePage> {
     super.dispose();
   }
 
+  void _resetForm() {
+    _captionController.clear();
+    setState(() {
+      _selectedAlbum = null;
+      _locationTagged = false;
+    });
+  }
+
+  Future<void> _showPickerSheet() async {
+    final cubit = context.read<PostCaptureCubit>();
+    HapticFeedback.lightImpact();
+    final source = await showModalBottomSheet<_PickerSource>(
+      context: context,
+      backgroundColor: AppColors.surface1,
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(PhosphorIconsLight.camera, color: AppColors.textPrimary),
+              title: const Text('Take photo'),
+              onTap: () => Navigator.pop(sheetCtx, _PickerSource.camera),
+            ),
+            ListTile(
+              leading: Icon(PhosphorIconsLight.image, color: AppColors.textPrimary),
+              title: const Text('Choose from library'),
+              onTap: () => Navigator.pop(sheetCtx, _PickerSource.gallery),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ),
+      ),
+    );
+    if (source == _PickerSource.camera) {
+      await cubit.pickFromCamera();
+    } else if (source == _PickerSource.gallery) {
+      await cubit.pickFromGallery();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedColor =
         _selectedAlbum != null ? _albums[_selectedAlbum!].color : null;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          const Positioned.fill(child: GrainOverlay()),
-          SafeArea(
-            bottom: false,
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.zero,
-              children: [
-                _PageHeader(),
-                const SizedBox(height: AppSpacing.xl),
-                _CameraBlock(selectedColor: selectedColor),
-                const SizedBox(height: AppSpacing.xxl),
-                _SectionLabel(label: 'post to album'),
-                const SizedBox(height: AppSpacing.md),
-                _AlbumPicker(
-                  albums: _albums,
-                  selectedIndex: _selectedAlbum,
-                  onSelect: (i) {
-                    HapticFeedback.lightImpact();
-                    setState(
-                      () => _selectedAlbum = _selectedAlbum == i ? null : i,
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                _SectionLabel(label: 'caption'),
-                const SizedBox(height: AppSpacing.md),
-                _CaptionField(controller: _captionController),
-                const SizedBox(height: AppSpacing.xl),
-                _LocationRow(
-                  tagged: _locationTagged,
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _locationTagged = !_locationTagged);
-                  },
-                ),
-                const SizedBox(height: AppSpacing.xxxl),
-                _PostButton(
-                  enabled: _selectedAlbum != null,
-                  selectedColor: selectedColor,
-                  onPost: () {
-                    HapticFeedback.mediumImpact();
-                  },
-                ),
-                const SizedBox(height: AppSpacing.huge + AppSpacing.xl),
-              ],
+    return BlocListener<PostCaptureCubit, PostCaptureState>(
+      listener: (context, state) {
+        if (state is PostCaptureSuccess) {
+          HapticFeedback.mediumImpact();
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(const SnackBar(content: Text('Posted.')));
+          _resetForm();
+          context.read<PostCaptureCubit>().clearMedia();
+        } else if (state is PostCaptureFailure) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            const Positioned.fill(child: GrainOverlay()),
+            SafeArea(
+              bottom: false,
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.zero,
+                children: [
+                  _PageHeader(),
+                  const SizedBox(height: AppSpacing.xl),
+                  _CameraBlock(
+                    selectedColor: selectedColor,
+                    onPick: _showPickerSheet,
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _SectionLabel(label: 'post to album'),
+                  const SizedBox(height: AppSpacing.md),
+                  _AlbumPicker(
+                    albums: _albums,
+                    selectedIndex: _selectedAlbum,
+                    onSelect: (i) {
+                      HapticFeedback.lightImpact();
+                      setState(
+                        () => _selectedAlbum = _selectedAlbum == i ? null : i,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  _SectionLabel(label: 'caption'),
+                  const SizedBox(height: AppSpacing.md),
+                  _CaptionField(controller: _captionController),
+                  const SizedBox(height: AppSpacing.xl),
+                  _LocationRow(
+                    tagged: _locationTagged,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _locationTagged = !_locationTagged);
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.xxxl),
+                  BlocBuilder<PostCaptureCubit, PostCaptureState>(
+                    builder: (context, state) {
+                      final hasMedia = state is PostCaptureIdle && state.hasMedia ||
+                          state is PostCaptureFailure && state.selectedFile != null;
+                      final publishing = state is PostCapturePublishing;
+                      return _PostButton(
+                        enabled: hasMedia && _selectedAlbum != null && !publishing,
+                        publishing: publishing,
+                        selectedColor: selectedColor,
+                        onPost: () {
+                          HapticFeedback.mediumImpact();
+                          context.read<PostCaptureCubit>().publish(
+                            caption: _captionController.text.trim().isEmpty
+                                ? null
+                                : _captionController.text.trim(),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.huge + AppSpacing.xl),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
+
+enum _PickerSource { camera, gallery }
 
 class _PageHeader extends StatelessWidget {
   @override
@@ -130,79 +237,135 @@ class _PageHeader extends StatelessWidget {
 }
 
 class _CameraBlock extends StatelessWidget {
-  const _CameraBlock({required this.selectedColor});
+  const _CameraBlock({required this.selectedColor, required this.onPick});
 
   final Color? selectedColor;
+  final VoidCallback onPick;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: AspectRatio(
-        aspectRatio: 4 / 5,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.xl),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.2, -0.3),
-                    radius: 1.2,
-                    colors: [
-                      selectedColor != null
-                          ? Color.lerp(
-                                selectedColor,
-                                Colors.black,
-                                0.4,
-                              ) ??
-                              AppColors.surface2
-                          : AppColors.surface2,
-                      AppColors.bgDeep,
-                    ],
-                  ),
-                ),
-              ),
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+    return BlocBuilder<PostCaptureCubit, PostCaptureState>(
+      builder: (context, state) {
+        final File? file = switch (state) {
+          PostCaptureIdle s => s.selectedFile,
+          PostCaptureFailure s => s.selectedFile,
+          _ => null,
+        };
+        final publishing = state is PostCapturePublishing;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: publishing ? null : onPick,
+            child: AspectRatio(
+              aspectRatio: 4 / 5,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.xl),
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    ScallopedOutlineButton(
-                      onTap: () => HapticFeedback.lightImpact(),
-                      size: 72,
-                      borderColor: selectedColor ?? AppColors.accent,
-                      child: Icon(
-                        PhosphorIconsLight.camera,
-                        color: selectedColor ?? AppColors.accent,
-                        size: 28,
+                    if (file != null)
+                      Image.file(file, fit: BoxFit.cover)
+                    else
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: const Alignment(-0.2, -0.3),
+                            radius: 1.2,
+                            colors: [
+                              selectedColor != null
+                                  ? Color.lerp(
+                                        selectedColor,
+                                        Colors.black,
+                                        0.4,
+                                      ) ??
+                                      AppColors.surface2
+                                  : AppColors.surface2,
+                              AppColors.bgDeep,
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      'tap to open camera',
-                      style:
-                          Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textTertiary,
-                            letterSpacing: 0.3,
+                    if (file == null)
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ScallopedOutlineButton(
+                              onTap: onPick,
+                              size: 72,
+                              borderColor: selectedColor ?? AppColors.accent,
+                              child: Icon(
+                                PhosphorIconsLight.camera,
+                                color: selectedColor ?? AppColors.accent,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Text(
+                              'tap to capture or choose',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: AppColors.textTertiary,
+                                    letterSpacing: 0.3,
+                                  ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'photo only · up to 10 MB',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppColors.textDisabled,
+                                    fontSize: 10,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (file != null)
+                      Positioned(
+                        top: AppSpacing.sm,
+                        right: AppSpacing.sm,
+                        child: TapBounce(
+                          scaleTo: 0.85,
+                          onTap: () =>
+                              context.read<PostCaptureCubit>().clearMedia(),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.55),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              PhosphorIconsLight.x,
+                              size: 16,
+                              color: Colors.white,
+                            ),
                           ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'photo or video up to 60s',
-                      style:
-                          Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: AppColors.textDisabled,
-                            fontSize: 10,
+                        ),
+                      ),
+                    if (publishing)
+                      Container(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        alignment: Alignment.center,
+                        child: SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.accent,
                           ),
-                    ),
+                        ),
+                      ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -446,11 +609,33 @@ class _PostButton extends StatelessWidget {
     required this.enabled,
     required this.selectedColor,
     required this.onPost,
+    this.publishing = false,
   });
 
   final bool enabled;
   final Color? selectedColor;
   final VoidCallback onPost;
+  final bool publishing;
+
+  String _label(BuildContext context) {
+    if (publishing) {
+      final state = context.read<PostCaptureCubit>().state;
+      if (state is PostCapturePublishing &&
+          state.stage == PublishStage.uploading) {
+        return 'uploading...';
+      }
+      return 'publishing...';
+    }
+    final cubit = context.read<PostCaptureCubit>();
+    final hasMedia = switch (cubit.state) {
+      PostCaptureIdle s => s.hasMedia,
+      PostCaptureFailure s => s.selectedFile != null,
+      _ => false,
+    };
+    if (!hasMedia) return 'add a photo first';
+    if (!enabled) return 'pick an album first';
+    return 'post';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -463,10 +648,10 @@ class _PostButton extends StatelessWidget {
           duration: const Duration(milliseconds: 250),
           height: 52,
           decoration: BoxDecoration(
-            color: enabled ? activeColor : AppColors.surface1,
+            color: enabled || publishing ? activeColor : AppColors.surface1,
             borderRadius: BorderRadius.circular(AppSpacing.xl),
             border: Border.all(
-              color: enabled
+              color: enabled || publishing
                   ? activeColor.withValues(alpha: 0.4)
                   : AppColors.borderSubtle,
               width: 0.5,
@@ -484,16 +669,28 @@ class _PostButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                PhosphorIconsLight.paperPlaneTilt,
-                color: enabled ? Colors.white : AppColors.textDisabled,
-                size: 18,
-              ),
+              if (publishing)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              else
+                Icon(
+                  PhosphorIconsLight.paperPlaneTilt,
+                  color: enabled ? Colors.white : AppColors.textDisabled,
+                  size: 18,
+                ),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                enabled ? 'post' : 'pick an album first',
+                _label(context),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: enabled ? Colors.white : AppColors.textDisabled,
+                  color: enabled || publishing
+                      ? Colors.white
+                      : AppColors.textDisabled,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.2,
                 ),
